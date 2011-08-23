@@ -6,6 +6,7 @@ left_wall = right_wall = bottom_wall = 0
 
 from collections import *
 
+#ripped from http://programmingzen.com/2009/05/18/memoization-in-ruby-and-python/
 def memoize(function):
     cache = {}
     def decorated_function(*args):

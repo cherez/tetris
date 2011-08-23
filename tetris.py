@@ -1,6 +1,6 @@
 pieces = []
-width = 8
-height = 7
+width = 6
+height = 6
 
 left_wall = right_wall = bottom_wall = 0
 
@@ -52,12 +52,12 @@ class Well(object):
     def __cmp__(self, other):
         return cmp(self.state, other.state)
 
-class Piece(object):
+class Tetromino(object):
     states = ()
     def __init__(self, states):
         self.states = states
 
-PieceState = namedtuple('PieceState', ['piece', 'orientation', 'location'])
+Piece = namedtuple('Piece', ['piece', 'orientation', 'location'])
 
 #@memoize
 def piece_state(piece):
@@ -69,7 +69,7 @@ def piece_state(piece):
 
 def positions(well, piece):
     location = (width*height)
-    start = PieceState(piece, 0, location)
+    start = Piece(piece, 0, location)
     states = set()
     states.add(start)
     open = [start]
@@ -78,27 +78,27 @@ def positions(well, piece):
         #try to go left
         ps = piece_state(n)
         if not ps & left_wall:
-            left = PieceState(n.piece, n.orientation, n.location-1)
+            left = Piece(n.piece, n.orientation, n.location-1)
             if left not in states:
                 if not piece_state(left) & well.state:
                     states.add(left)
                     open.append(left)
         #try to go right
         if not ps & right_wall:
-            right = PieceState(n.piece, n.orientation, n.location+1)
+            right = Piece(n.piece, n.orientation, n.location+1)
             if right not in states:
                 if not piece_state(right) & well.state:
                     states.add(right)
                     open.append(right)
         #try to go down
         if not ps & bottom_wall:
-            down = PieceState(n.piece, n.orientation, n.location-width)
+            down = Piece(n.piece, n.orientation, n.location-width)
             if down not in states:
                 if not piece_state(down) & well.state:
                     states.add(down)
                     open.append(down)
         #try rotation
-        rotated = PieceState(n.piece, (n.orientation+1) % len(n.piece.states), n.location)
+        rotated = Piece(n.piece, (n.orientation+1) % len(n.piece.states), n.location)
         if rotated not in states:
             #slightly hackish way to see if we've crossed the edge
             r = piece_state(rotated)
@@ -116,11 +116,11 @@ def make_pieces():
     pieces = []
     #O
     shapes = ((6 | 6<<width) << width ,)
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #I
     shapes = ( 15 << width, 2 | (2 << width) | (2 << (2 * width)) | (2 << (3 * width)) )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #J
     shapes = ((14 << width) | (2 << (2 * width)),
@@ -128,7 +128,7 @@ def make_pieces():
             8 | (14 << width),
             6 | (4 << width) | (4 << (2 * width)),
             )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #L
     shapes = ((7 << width) | (4 << (2 * width)),
@@ -136,19 +136,19 @@ def make_pieces():
             1 | (7 << width),
             2 | (2 << width) | (3 << (2 * width)),
             )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #S
     shapes = ((3 << width) | (6 << (2 * width)),
             2 | (3 << width) | (1 << (2 * width)),
             )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #S
     shapes = ((6 << width) | (3 << (2 * width)),
             1 | (3 << width) | (2 << (2 * width)),
             )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
     #T
     shapes = ((7 << width) | (2 << (2 * width)),
@@ -156,7 +156,7 @@ def make_pieces():
             2 | (7 << width),
             2 | (3 << width) | (2 << (2 * width)),
             )
-    pieces.append(Piece(shapes))
+    pieces.append(Tetromino(shapes))
 
 def make_walls():
     global bottom_wall, left_wall, right_wall

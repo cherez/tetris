@@ -1,4 +1,5 @@
 #include <vector>
+#include <set>
 
 typedef __uint128_t state;
 
@@ -36,7 +37,7 @@ void draw_state(state s);
 
 void make_walls();
 void make_pieces();
-set<state> positions(Well w, Tetromino* t);
-vector<state> landings(Well w, Tetromino* t);
+std::set<state> positions(Well w, Tetromino* t);
+std::vector<state> landings(Well w, Tetromino* t);
 bool find_winner(Well w);
 bool piece_wins(Well w, Tetromino& t);

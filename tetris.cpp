@@ -1,5 +1,6 @@
 #include "tetris.h"
 #include <iostream>
+#include <map>
 
 
 using namespace std;
@@ -210,13 +211,20 @@ vector<state> landings(Well w, Tetromino* t)
 
 bool find_winner(Well w)
 {
+    static map<state, bool> winning_states;
+    if(winning_states.count(w.s))
+    {
+        return winning_states[w.s];
+    }
     for(int i = 0; i < tetrominos.size(); i++)
     {
         if(piece_wins(w, tetrominos[i]))
         {
+            winning_states[w.s] = true;
             return true;
         }
     }
+    winning_states[w.s] = false;
     return false;
 }
 

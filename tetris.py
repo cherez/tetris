@@ -145,7 +145,7 @@ def make_pieces():
             )
     pieces.append(Tetromino(shapes))
 
-    #S
+    #Z
     shapes = ((6 << width) | (3 << (2 * width)),
             1 | (3 << width) | (2 << (2 * width)),
             )

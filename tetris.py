@@ -2,9 +2,10 @@ pieces = []
 width = 6
 height = 6
 
+#Walls for fast checking if a piece is going off the edge
 left_wall = right_wall = bottom_wall = 0
 
-from collections import *
+from collections import namedtuple
 
 #ripped from http://programmingzen.com/2009/05/18/memoization-in-ruby-and-python/
 def memoize(function):
@@ -37,14 +38,17 @@ class Well(object):
         return state
 
     def has_line(self):
+        #A full line across the bottom of the screen
         line = (1 << width) - 1
         while(self.state & line):
+            #check if every point under the line is filled
             if (self.state & line) == line:
                 return True
             line <<= width
         return False
 
     def lost(self):
+        #Human loses if well is filled over the top
         return self.state > (1 << (width*height))
 
     def __hash__(self):
@@ -69,6 +73,7 @@ def piece_state(piece):
 
 
 def positions(well, piece):
+    #Run a breadth-first search for all ways to orient a piece in the well
     location = (width*height)
     start = Piece(piece, 0, location)
     states = set()
@@ -110,7 +115,9 @@ def positions(well, piece):
     return states
 
 def landings(well, piece):
-   return [n for n in positions(well, piece) if piece_state(n) & (bottom_wall | (well.state << width))]
+    #A position is a landing if it is right above the bottom wall
+    #or a filled space in the well
+    return [n for n in positions(well, piece) if piece_state(n) & (bottom_wall | (well.state << width))]
 
 def make_pieces():
     global pieces
@@ -170,29 +177,34 @@ def make_walls():
 
 @memoize
 def who_wins(well):
+    #We win if and only if there is a piece we can choose that will make us win
     for p in pieces:
         if piece_wins(well, p):
-            return 1
-    return 0
+            return True
+    return False
 
 def piece_wins(well, piece):
+    #A piece wins if there is no place it can be put where the human wins
     for position in landings(well, piece):
         w2 = Well(well.state | piece_state(position))
+        #If putting the piece here fills the board, then the human has lost
+        #and we need to check their other options
         if w2.lost():
             continue
+        #if this position clears a line, then the human wins
         if w2.has_line():
-            return 0
+            return False
+        #Or if from here the human can win, the human wins
         if not who_wins(w2):
-            return 0
-    return 1
+            return False
+    return True
 
 make_walls()
 make_pieces()
-#while not w.lost():
-#    print w
-#    print w.has_line()
-#    move = random.choice(landings(w, pieces[0]))
-#    w.state |= piece_state(move)
-#print w
 
-print who_wins(Well(0))
+if __name__ == '__main__':
+    well = Well(0)
+    if who_wins(well):
+        print('Computer wins')
+    else:
+        print('Human wins')

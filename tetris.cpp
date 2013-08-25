@@ -195,8 +195,11 @@ set<state> positions(Well w, Tetromino* t)
             //slightly hackish way to see if we've crossed the edge
             if(!(r & left_wall && r & right_wall))
             {
-                states.insert(r);
-                open.push_back(rotated);
+                if(!(w.s & r))
+                {
+                    states.insert(r);
+                    open.push_back(rotated);
+                }
             }
         }
     }

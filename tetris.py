@@ -1,6 +1,6 @@
 pieces = []
 width = 6
-height = 6
+height = 5
 
 #Walls for fast checking if a piece is going off the edge
 left_wall = right_wall = bottom_wall = 0

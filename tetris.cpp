@@ -12,14 +12,17 @@ Well::Well(state s)
 
 bool Well::lost() const
 {
+    //Human loses if well is filled over the top
     return s >> (WIDTH * HEIGHT);
 }
 
 bool Well::has_line() const
 {
+    //A full line across the bottom of the screen
     state line = bottom_wall;
     while(s & line)
     {
+        //check if every point under the line is filled
         if((s & line) == line)
         {
             return true;
@@ -128,6 +131,7 @@ void make_pieces()
 
 set<state> positions(Well w, Tetromino* t)
 {
+    //Run a breadth-first search for all ways to orient a piece in the well
     int location = WIDTH * HEIGHT;
     Piece start(t, 0, location);
     set<state> states;
@@ -139,6 +143,7 @@ set<state> positions(Well w, Tetromino* t)
         Piece n = open.back();
         open.pop_back();
         state s = n.get_state();
+        //try to go left
         if(!(s & left_wall))
         {
             Piece left(n.shape, n.orientation, n.location-1);
@@ -152,6 +157,7 @@ set<state> positions(Well w, Tetromino* t)
                 }
             }
         }
+        //try to go right
         if(!(s & right_wall))
         {
             Piece right(n.shape, n.orientation, n.location+1);
@@ -165,6 +171,7 @@ set<state> positions(Well w, Tetromino* t)
                 }
             }
         }
+        //try to go down
         if(!(s & bottom_wall))
         {
             Piece bottom(n.shape, n.orientation, n.location-WIDTH);
@@ -178,13 +185,15 @@ set<state> positions(Well w, Tetromino* t)
                 }
             }
         }
+        //try rotation
         Piece rotated(n.shape,
                 (n.orientation+1) % n.shape->states.size(),
                 n.location);
         state r = rotated.get_state();
-        if(!(r & left_wall && r & right_wall))
+        if(!states.count(r))
         {
-            if(!states.count(r))
+            //slightly hackish way to see if we've crossed the edge
+            if(!(r & left_wall && r & right_wall))
             {
                 states.insert(r);
                 open.push_back(rotated);
@@ -196,6 +205,8 @@ set<state> positions(Well w, Tetromino* t)
 
 vector<state> landings(Well w, Tetromino* t)
 {
+    //A position is a landing if it is right above the bottom wall
+    //or a filled space in the well
     set<state> result = positions(w, t);
     vector<state> ret;
     set<state>::iterator it;
@@ -211,6 +222,7 @@ vector<state> landings(Well w, Tetromino* t)
 
 bool find_winner(Well w)
 {
+    //We win if and only if there is a piece we can choose that will make us win
     static map<state, bool> winning_states;
     if(winning_states.count(w.s))
     {
@@ -230,19 +242,26 @@ bool find_winner(Well w)
 
 bool piece_wins(Well w, Tetromino& t)
 {
+    //A piece wins if there is no place it can be put where the human wins
     vector<state> l = landings(w, &t);
     vector<state>::iterator it;
     for(it = l.begin(); it != l.end(); it++)
     {
         Well w2(w.s | *it);
+        //If putting the piece here fills the board, then the human has lost
+        //and we need to check their other options
         if(w2.lost())
         {
             continue;
         }
+
+        //if this position clears a line, then the human wins
         if(w2.has_line())
         {
             return false;
         }
+
+        //Or if from here the human can win, the human wins
         if(!find_winner(w2))
         {
             return false;
@@ -256,6 +275,9 @@ int main(int argc, char** argv)
     make_walls();
     make_pieces();
     Well w;
-    cout << find_winner(w) << endl;
+    if(find_winner(w))
+        cout << "Computer wins" << endl;
+    else
+        cout << "Human wins" << endl;
     return 0;
 }
